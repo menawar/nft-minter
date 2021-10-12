@@ -44,19 +44,19 @@ function App() {
   };
 
   const createMetaDataAndMint = async (_name, _des, _imgBuffer) => {
-    // setLoading(true);
-    // setStatus("Uploading to IPFS");
+    setLoading(true);
+    setStatus("Uploading to IPFS");
     try {
       const addedImage = await ipfsClient.add(_imgBuffer);
-      console.log(ipfsBaseUrl + addedImage.path);
-      // const metaDataObj = {
-      //   name: _name,
-      //   description: _des,
-      //   image: ipfsBaseUrl + addedImage.path,
-      // };
-      // const addedMetaData = await ipfsClient.add(JSON.stringify(metaDataObj));
-      // console.log(ipfsBaseUrl + addedMetaData.path);
-      // mint(ipfsBaseUrl + addedMetaData.path);
+      const metaDataObj = {
+        name: _name,
+        description: _des,
+        image: ipfsBaseUrl + addedImage.path,
+      };
+      // console.log(metaDataObj);
+      const addedMetaData = await ipfsClient.add(JSON.stringify(metaDataObj));
+      console.log(ipfsBaseUrl + addedMetaData.path);
+      mint(ipfsBaseUrl + addedMetaData.path);
     } catch (err) {
       console.log(err);
       setLoading(false);
@@ -72,7 +72,6 @@ function App() {
     const canvasEl = elementRef.current;
     let dataUrl = canvasEl.toDataURL("image/png");
     const buffer = Buffer(dataUrl.split(",")[1], "base64");
-    console.log(buffer);
     return buffer;
   };
 
