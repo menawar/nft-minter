@@ -25,6 +25,8 @@ function App() {
   const name = "NFT name";
   const description = "IPFS minted nft woooooo.";
 
+  console.log(NFTS);
+
   const mint = (_uri) => {
     blockchain.smartContract.methods
       .mint(blockchain.account, _uri)
@@ -53,7 +55,6 @@ function App() {
         description: _des,
         image: ipfsBaseUrl + addedImage.path,
       };
-      // console.log(metaDataObj);
       const addedMetaData = await ipfsClient.add(JSON.stringify(metaDataObj));
       console.log(ipfsBaseUrl + addedMetaData.path);
       mint(ipfsBaseUrl + addedMetaData.path);
@@ -75,6 +76,23 @@ function App() {
     return buffer;
   };
 
+  const fetchMetatDataForNFTS = () => {
+    setNFTS([]);
+    data.allTokens.forEach((nft) => {
+      fetch(nft.uri)
+        .then((response) => response.json())
+        .then((metaData) => {
+          setNFTS((prevState) => [
+            ...prevState,
+            { id: nft.id, metaData: metaData },
+          ]);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+  };
+
   const clearCanvas = () => {
     const canvasEl = elementRef.current;
     canvasEl.clear();
@@ -85,6 +103,10 @@ function App() {
       dispatch(fetchData(blockchain.account));
     }
   }, [blockchain.smartContract, dispatch]);
+
+  useEffect(() => {
+    fetchMetatDataForNFTS();
+  }, [data.allTokens]);
 
   return (
     <s.Screen>
@@ -110,6 +132,22 @@ function App() {
           <s.TextTitle style={{ textAlign: "center" }}>
             Welcome mint your signature
           </s.TextTitle>
+          {loading ? (
+            <>
+              <s.SpacerSmall />
+              <s.TextDescription style={{ textAlign: "center" }}>
+                loading...
+              </s.TextDescription>
+            </>
+          ) : null}
+          {status !== "" ? (
+            <>
+              <s.SpacerSmall />
+              <s.TextDescription style={{ textAlign: "center" }}>
+                {status}
+              </s.TextDescription>
+            </>
+          ) : null}
           <s.SpacerLarge />
           <s.Container fd={"row"} jc={"center"}>
             <StyledButton
@@ -133,9 +171,31 @@ function App() {
           <s.SpacerLarge />
           <SignatureCanvas
             backgroundColor={"#3271bf"}
-            ref={elementRef}
             canvasProps={{ width: 350, height: 350 }}
+            ref={elementRef}
           />
+          <s.SpacerLarge />
+          {data.loading ? (
+            <>
+              <s.SpacerSmall />
+              <s.TextDescription style={{ textAlign: "center" }}>
+                loading...
+              </s.TextDescription>
+            </>
+          ) : (
+            NFTS.map((nft, index) => {
+              return (
+                <s.Container key={index} style={{ padding: 16 }}>
+                  <s.TextTitle>{nft.metaData.name}</s.TextTitle>
+                  <img
+                    alt={nft.metaData.name}
+                    src={nft.metaData.image}
+                    width={150}
+                  />
+                </s.Container>
+              );
+            })
+          )}
         </s.Container>
       )}
     </s.Screen>
